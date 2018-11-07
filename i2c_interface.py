@@ -36,7 +36,6 @@ class I2CBus:
     def read_device(self, device_number):
         """ Reads the specified device and returns its raw data. """
         device = self.get_device(device_number)
-        # TODO Finish implementing this method
         return self.bus.read_i2c_block_data(device.address, 0x01, 6)
 
 
