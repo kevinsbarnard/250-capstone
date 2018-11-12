@@ -1,6 +1,5 @@
 # i2c_interface.py
 # Functions responsible for reading i2c from the RPi.
-from scipy.constants.constants import g
 import smbus
 import time
 
@@ -15,7 +14,7 @@ class Accelerometer:
     def read(self):
         """ Returns a sample time and len=3 list of read accelerometer data. """
         read_time = time.time()
-        read_data = self.normalize_data(self.device.read())
+        read_data = normalize_data(self.device.read())
         self.sample_times.append(read_time)
         for i in range(3):
             self.sample_data[i].append(read_data[i])
@@ -36,6 +35,7 @@ class I2CDevice:
     bus = None
 
     def __init__(self, bus, device_number):
+        self.bus = bus
         self.address = get_address(device_number)
 
     def read(self):
@@ -65,8 +65,10 @@ class I2CBus:
             raise ValueError("Out of bounds device number:", device_number)
         return self.device_dict[device_number]
 
+    def read_i2c_block_data(self, address, reg_start, num_regs):
+        return self.bus.read_i2c_block_data(address, reg_start, num_regs)
 
-def normalize_data(self, raw_data):
+def normalize_data(raw_data):
     """ Converts raw accelerometer data to normalized values. """
     data = [0, 0, 0]
 
@@ -83,7 +85,7 @@ def normalize_data(self, raw_data):
     return data
 
 
-def convert_datum(self, datum):
+def convert_datum(datum):
     """ Converts normalized data list to acceleration data (m/s^2). """
     return datum * 9.81 / 1024
 

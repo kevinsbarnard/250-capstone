@@ -11,23 +11,25 @@ def test_i2c():
 
     bus1.init_device(0)
     bus1.init_device(1)
-    bus0.init_device(0)
+    bus0.init_device(1)
 
     acc0 = Accelerometer(bus1.get_device(0))
     acc1 = Accelerometer(bus1.get_device(1))
-    acc2 = Accelerometer(bus0.get_device(0))
+    acc2 = Accelerometer(bus0.get_device(1))
 
     ti = time.time()
+    print("Reading data...")
     while time.time() - ti < 10:
         acc0.read()
         acc1.read()
         acc2.read()
+    print("done")
 
-    acc0_data_z = np.array(map(convert_datum, acc0.get_axis_data(2)))
-    acc0_sample_times = np.array(acc0.get_sample_times())
+    acc0_data_z = np.array(list(map(convert_datum, acc0.get_axis_data(2))))
+    acc0_sample_times = np.array(acc0.get_sample_times()) - ti
     plt.plot(acc0_sample_times, acc0_data_z)
     plt.show()
 
 
 if __name__ == "__main__":
-    pass
+    test_i2c()
