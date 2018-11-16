@@ -5,6 +5,7 @@ import hyperbolic_location
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+import blockmatching
 
 
 def test_i2c():
@@ -23,16 +24,28 @@ def test_i2c():
 
     ti = time.time()
     print("Reading data...")
-    while time.time() - ti < 10:
+    while time.time() - ti < 5:
         acc0.read()
         acc1.read()
         acc2.read()
     print("done")
 
-    acc0_data_z = np.array(list(map(i2c_interface.convert_datum, acc0.get_axis_data(2))))
     acc0_sample_times = np.array(acc0.get_sample_times()) - ti
-    plt.plot(acc0_sample_times, acc0_data_z)
+    acc0_magnitudes = acc0.get_magnitude_data()
+    acc1_sample_times = np.array(acc1.get_sample_times()) - ti
+    acc1_magnitudes = acc1.get_magnitude_data()
+    acc2_sample_times = np.array(acc2.get_sample_times()) - ti
+    acc2_magnitudes = acc2.get_magnitude_data()
+    
+    plt.plot(acc0_sample_times, acc0_magnitudes, label='acc0')
+    plt.plot(acc1_sample_times, acc1_magnitudes, label='acc1')
+    plt.plot(acc2_sample_times, acc2_magnitudes, label='acc2')
+    plt.legend()
     plt.show()
+
+    tdoa10 = blockmatching.TDOA(acc1_magnitudes, acc0_magnitudes, acc0_sample_times)
+    tdoa20 = blockmatching.TDOA(acc2_magnitudes, acc0_magnitudes, acc0_sample_times)
+    print(tdoa10, tdoa20)
 
 
 def test_locate():
@@ -42,5 +55,5 @@ def test_locate():
 
 
 if __name__ == "__main__":
-    # test_i2c()
-    test_locate()
+    test_i2c()
+    # test_locate()

@@ -2,6 +2,7 @@
 # Functions responsible for reading i2c from the RPi.
 import smbus
 import time
+import numpy as np
 
 class Accelerometer:
     device = None
@@ -28,6 +29,9 @@ class Accelerometer:
             return self.sample_data[axis]
         else:
             raise ValueError("Bad axis:", axis)
+
+    def get_magnitude_data(self):
+        return np.linalg.norm(np.array(self.sample_data), axis=0)
 
 
 class I2CDevice:
