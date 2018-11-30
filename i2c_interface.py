@@ -4,13 +4,15 @@ import smbus
 import time
 import numpy as np
 
+
 class Accelerometer:
     device = None
-    sample_times = []
-    sample_data = [[], [], []]
+    sample_times = None
+    sample_data = None
 
     def __init__(self, device):
         self.device = device
+        self.clear()
 
     def read(self):
         """ Returns a sample time and len=3 list of read accelerometer data. """
@@ -21,17 +23,32 @@ class Accelerometer:
             self.sample_data[i].append(read_data[i])
         return read_time, read_data
 
+    def clear(self):
+        """ Clears sample times and sample data lists. """
+        self.sample_times = []
+        self.sample_data = [[], [], []]
+
     def get_sample_times(self):
-        return self.sample_times
+        """ Returns a numpy array of the recorded sample times. """
+        return np.array(self.sample_times)
 
     def get_axis_data(self, axis):
+        """ Returns a numpy array of the data collected for a given axis.
+        0 = x
+        1 = y
+        2 = z
+        """
         if axis in range(3):
-            return self.sample_data[axis]
+            return np.array(self.sample_data[axis])
         else:
             raise ValueError("Bad axis:", axis)
 
     def get_magnitude_data(self):
-        return np.linalg.norm(np.array(self.sample_data), axis=0)
+        """ Performs a vectorized calculation and returns a numpy array of the magnitude data. """
+        x = self.get_axis_data(0)
+        y = self.get_axis_data(1)
+        z = self.get_axis_data(2)
+        return np.sqrt(x**2 + y**2 + z**2)
 
 
 class I2CDevice:
@@ -72,6 +89,7 @@ class I2CBus:
     def read_i2c_block_data(self, address, reg_start, num_regs):
         return self.bus.read_i2c_block_data(address, reg_start, num_regs)
 
+
 def normalize_data(raw_data):
     """ Converts raw accelerometer data to normalized values. """
     data = [0, 0, 0]
@@ -95,6 +113,7 @@ def convert_datum(datum):
 
 
 def get_address(device_number):
+    """ Maps device numbers. """
     if device_number == 0:
         return 0x1C
     elif device_number == 1:
