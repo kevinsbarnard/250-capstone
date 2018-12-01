@@ -18,11 +18,8 @@ class Region:
 
     def set_action(self, action):
         """ Sets the action to be performed for this region. """
+        self.action = action
 
     def within(self, x, y):
         """ Returns if the given point is within the region's bounds. """
         return x >= self.top_x and x <= self.bottom_x and y >= self.bottom_y and y <= self.top_y
-
-    def action(self):
-        """ Does the region's action. """
-        self.action()

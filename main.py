@@ -1,10 +1,12 @@
 # main.py
 # Main application to run
 import RPi.GPIO as GPIO
+import matplotlib.pyplot as plt
 import i2c_interface
 import blockmatching
 import hyperbolic_location
 import time
+from regions import Region
 
 app_states = {
     0: "INFO",
@@ -15,7 +17,7 @@ app_states = {
 button_pin = 24
 
 accs = []
-
+regions = []
 
 def setup():
     """ Sets up application. """
@@ -40,8 +42,32 @@ def setup():
     accs[1] = i2c_interface.Accelerometer(bus1.get_device(1))
     accs[2] = i2c_interface.Accelerometer(bus0.get_device(1))
 
+    # Create regions
+    for y in range(4):
+        for x in range(4):
+            regions.append(Region(x/4, (y+1)/4, (x+1)/4, y))
+
+    # Map actions
+    regions[0].set_action('0')
+    regions[1].set_action('+')
+    regions[2].set_action('-')
+    regions[3].set_action('Enter')
+    regions[4].set_action('1')
+    regions[5].set_action('2')
+    regions[6].set_action('3')
+    regions[7].set_action('Del')
+    regions[8].set_action('4')
+    regions[9].set_action('5')
+    regions[10].set_action('6')
+    regions[11].set_action('/')
+    regions[12].set_action('7')
+    regions[13].set_action('8')
+    regions[14].set_action('9')
+    regions[15].set_action('*')
+
 
 def main():
+    user_input = ""
     end = False
     while not end:
         t_start = time.time()
@@ -79,6 +105,28 @@ def main():
             x, y = hyperbolic_location.locate(tdoa_right, tdoa_up)
 
             log("Calculated point = ({}, {})".format(x, y))
+
+            # Make and display plot of detected point
+            plt.plot([x], [y], 'o')
+            plt.axis([0, 1, 0, 1])
+            plt.title("Detected point")
+            plt.axes().set_aspect('equal')
+            plt.xlabel('x (m)')
+            plt.ylabel('y (m)')
+            plt.show()
+
+            # Check and process regions
+            for region in regions:
+                if region.within(x, y):
+                    if region.action == 'Enter':
+                        end = True  # End loop
+                    elif region.action == 'Del':
+                        user_input = user_input[:-1]  # Delete last character
+                    else:
+                        user_input += region.action  # Add action
+
+    # Evaluate and output user input
+    print(user_input, '=', eval(user_input))
 
 
 def cleanup():
